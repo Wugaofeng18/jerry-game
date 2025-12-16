@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jerry的减压小锤 🎮</title>
+    <meta name="description" content="一个为女性玩家设计的减压小游戏，通过点击Tom来释放压力">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔨</text></svg>">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+    <!-- 游戏主容器 -->
+    <div id="game-container">
+        <!-- 顶部信息栏 -->
+        <header class="game-header">
+            <div class="game-title">
+                <span class="title-emoji">🔨</span>
+                <h1>Jerry的减压小锤</h1>
+            </div>
+            <div class="settings-button" id="settings-btn">
+                ⚙️
+            </div>
+        </header>
+
+        <!-- 游戏区域 -->
+        <main class="game-area">
+            <!-- 背景装饰 -->
+            <div class="background-decorations">
+                <div class="decoration-circle circle-1"></div>
+                <div class="decoration-circle circle-2"></div>
+                <div class="decoration-circle circle-3"></div>
+            </div>
+
+            <!-- Tom游戏网格 -->
+            <div class="tom-grid" id="tom-grid">
+                <!-- 3x3 网格将由JavaScript动态生成 -->
+            </div>
+
+            <!-- 反馈文字容器 -->
+            <div class="feedback-container" id="feedback-container"></div>
+
+            <!-- 连击显示 -->
+            <div class="combo-display" id="combo-display" style="display: none;">
+                <div class="combo-badge">
+                    <span class="combo-number" id="combo-number">0</span>
+                    <span class="combo-text">连击</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- 设置面板 -->
+        <div class="settings-panel" id="settings-panel">
+            <div class="settings-content">
+                <div class="settings-header">
+                    <h2>游戏设置</h2>
+                    <button class="close-btn" id="close-settings">✕</button>
+                </div>
+
+                <div class="settings-options">
+                    <div class="setting-item">
+                        <label class="setting-label">音效</label>
+                        <label class="switch">
+                            <input type="checkbox" id="sound-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">背景音乐</label>
+                        <label class="switch">
+                            <input type="checkbox" id="bgm-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">震动反馈</label>
+                        <label class="switch">
+                            <input type="checkbox" id="vibration-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="about-section">
+                    <h3>关于游戏</h3>
+                    <p>
+                        Jerry的减压小锤<br>
+                        一个专为减压设计的小游戏<br><br>
+                        点击Tom来释放压力吧！<br>
+                        没有失败，没有压力，只有温柔的陪伴。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏开始遮罩 -->
+        <div class="game-overlay" id="game-overlay">
+            <div class="overlay-content">
+                <div class="welcome-card">
+                    <div class="welcome-emoji">🔨</div>
+                    <h2>欢迎来到<br>Jerry的减压小锤</h2>
+                    <p>点击Tom来释放压力，享受温柔的陪伴～</p>
+                    <button class="start-btn" id="start-game-btn">开始游戏</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/audio.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+</html>
