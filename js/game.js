@@ -91,7 +91,7 @@ class JerryGame {
             if (firstPosition) {
                 this.spawnTom(firstPosition);
             }
-        }, 500);
+        }, 200);
     }
 
     // 暂停游戏
@@ -117,13 +117,13 @@ class JerryGame {
                 this.spawnTom(position);
             }
 
-            // 随机安排下一个Tom
-            const delay = Math.random() * 1500 + 1000; // 1-2.5秒
+            // 随机安排下一个Tom - 减少频率避免卡顿
+            const delay = Math.random() * 1000 + 800; // 0.8-1.8秒
             this.tomSpawnInterval = setTimeout(spawnTom, delay);
         };
 
-        // 延迟1秒后开始第一个Tom
-        setTimeout(spawnTom, 1000);
+        // 立即开始第一个Tom
+        setTimeout(spawnTom, 300);
     }
 
     // 停止生成Tom
@@ -194,13 +194,29 @@ class JerryGame {
         tomElement.dataset.tomId = tom.id;
 
         tomElement.innerHTML = `
+            <div class="tom-ears">
+                <div class="ear left"></div>
+                <div class="ear right"></div>
+            </div>
             <div class="tom-face">
+                <div class="whiskers">
+                    <div class="whisker left-1"></div>
+                    <div class="whisker left-2"></div>
+                    <div class="whisker left-3"></div>
+                    <div class="whisker left-4"></div>
+                    <div class="whisker right-1"></div>
+                    <div class="whisker right-2"></div>
+                    <div class="whisker right-3"></div>
+                    <div class="whisker right-4"></div>
+                </div>
                 <div class="eyes-container">
                     <div class="eye"></div>
                     <div class="eye"></div>
                 </div>
                 <div class="nose"></div>
-                <div class="mouth"></div>
+                <div class="mouth-container">
+                    <div class="mouth-line"></div>
+                </div>
             </div>
             <div class="stars-container"></div>
         `;
@@ -213,22 +229,24 @@ class JerryGame {
 
     // 设置Tom生命周期
     setupTomLifecycle(tom) {
-        // 出现动画
+        // 立即变为待机状态，减少动画延迟
         setTimeout(() => {
             if (tom.state === 'appearing') {
                 tom.state = 'idle';
-                tom.element.className = 'tom idle';
+                if (tom.element) {
+                    tom.element.className = 'tom idle';
+                }
             }
-        }, 1500);
+        }, 800);
 
-        // 待机时间后自动消失
+        // 待机时间后自动消失 - 缩短时间
         if (tom.state === 'appearing') {
-            const idleDuration = Math.random() * 3000 + 2000; // 2-5秒
+            const idleDuration = Math.random() * 2000 + 1500; // 1.5-3.5秒
             setTimeout(() => {
                 if (tom.state === 'idle') {
                     this.hideTom(tom.id);
                 }
-            }, 1500 + idleDuration);
+            }, 800 + idleDuration);
         }
     }
 
@@ -257,10 +275,10 @@ class JerryGame {
         // 处理连击奖励
         this.handleComboRewards(tom.position);
 
-        // 延迟后隐藏Tom
+        // 延迟后隐藏Tom - 缩短时间
         setTimeout(() => {
             this.hideTom(tomId);
-        }, 2000);
+        }, 1200);
     }
 
     // 隐藏Tom
@@ -343,7 +361,7 @@ class JerryGame {
         }
     }
 
-    // 添加反馈文字
+    // 添加反馈文字 - 男朋友版本
     addFeedback(text, type = 'instantHit', position = null) {
         // 清理过期的反馈
         this.cleanupFeedbacks();
@@ -358,8 +376,25 @@ class JerryGame {
 
         // 创建反馈元素
         const feedbackElement = document.createElement('div');
-        feedbackElement.className = `feedback-text ${type}`;
+
+        // 根据类型设置不同样式和动画
+        if (text.includes('老公') || text.includes('宝贝') || text.includes('老婆')) {
+            feedbackElement.className = 'feedback-text instant-hit boyfriend-feedback';
+            feedbackElement.style.animation = 'boyfriendFeedback 2.5s ease-out forwards';
+        } else if (type === 'combo') {
+            feedbackElement.className = 'feedback-text combo';
+        } else if (type === 'gentle-support') {
+            feedbackElement.className = 'feedback-text gentle-support';
+        } else {
+            feedbackElement.className = `feedback-text ${type}`;
+        }
+
         feedbackElement.textContent = text;
+
+        // 如果是男朋友夸奖，添加爱心特效
+        if (text.includes('老公') || text.includes('宝贝') || text.includes('老婆')) {
+            this.addHeartEffect();
+        }
 
         // 设置位置
         const containerRect = document.getElementById('tom-grid').getBoundingClientRect();
@@ -390,7 +425,30 @@ class JerryGame {
         // 自动移除
         setTimeout(() => {
             this.removeFeedback(feedback.id);
-        }, 2000);
+        }, 2500); // 延长显示时间，让用户能看完整
+    }
+
+    // 添加爱心特效
+    addHeartEffect() {
+        const heart = document.createElement('div');
+        heart.innerHTML = '❤️';
+        heart.style.cssText = `
+            position: fixed;
+            font-size: 30px;
+            z-index: 100;
+            pointer-events: none;
+            animation: heartFloat 3s ease-out forwards;
+            left: ${Math.random() * (window.innerWidth - 50)}px;
+            top: ${window.innerHeight - 100}px;
+        `;
+
+        document.body.appendChild(heart);
+
+        setTimeout(() => {
+            if (heart.parentNode) {
+                heart.parentNode.removeChild(heart);
+            }
+        }, 3000);
     }
 
     // 移除反馈文字
@@ -405,17 +463,26 @@ class JerryGame {
         }
     }
 
-    // 清理过期的反馈
+    // 清理过期的反馈 - 减少内存占用
     cleanupFeedbacks() {
         const now = Date.now();
         this.activeFeedbacks = this.activeFeedbacks.filter(feedback => {
             const age = now - feedback.timestamp;
-            if (age > 3000) { // 3秒后自动清理
+            if (age > 2000) { // 2秒后自动清理
                 this.removeFeedback(feedback.id);
                 return false;
             }
             return true;
         });
+
+        // 限制同时显示的反馈数量，避免卡顿
+        if (this.activeFeedbacks.length > 3) {
+            const excess = this.activeFeedbacks.slice(0, this.activeFeedbacks.length - 3);
+            excess.forEach(feedback => {
+                this.removeFeedback(feedback.id);
+            });
+            this.activeFeedbacks = this.activeFeedbacks.slice(-3);
+        }
     }
 
     // 添加星星特效
@@ -449,7 +516,7 @@ class JerryGame {
         });
     }
 
-    // 开始温柔支持
+    // 开始温柔支持 - 降低频率避免干扰
     startGentleSupport() {
         const gentleSupportInterval = setInterval(() => {
             if (!this.isPlaying || this.isPaused) {
@@ -457,74 +524,97 @@ class JerryGame {
                 return;
             }
 
-            if (Math.random() < 0.1) { // 10%概率
+            if (Math.random() < 0.05) { // 降低到5%概率
                 this.addFeedback(this.getGentleSupportText(), 'gentle-support', null);
             }
-        }, 15000); // 每15秒检查一次
+        }, 20000); // 每20秒检查一次
     }
 
-    // 获取即时击中反馈
+    // 获取即时击中反馈 - 男朋友视角
     getInstantHitFeedback() {
         const feedbacks = [
-            "这一锤太解压了！",
-            "Jerry今天状态很好",
-            "完美的节奏！",
-            "打得真准！",
-            "Tom有点晕了",
-            "就是这样！",
-            "非常棒的击中！",
-            "Tom：诶？",
-            "手感正好",
-            "干净利落！",
-            "不错嘛",
-            "Tom开始害怕了（开玩笑）",
-            "力道刚刚好",
-            "Tom：我尽力了……"
+            "宝贝打得真准！❤️",
+            "老公在为你加油哦～",
+            "我的宝贝真厉害！",
+            "就是这样，别客气～",
+            "Tom：老婆饶命🥺",
+            "我最喜欢你这样认真的样子",
+            "哇，力道刚刚好，很舒服呢",
+            "宝贝今天状态爆棚！",
+            "这个反应速度，太棒了吧",
+            "老公为你骄傲！",
+            "看你打Tom的样子好可爱",
+            "没错，就是这样不手软",
+            "宝贝一定累了吧？老公帮你捏捏肩～",
+            "每次出手都这么精准，佩服佩服",
+            "老公看得出你很开心呢",
+            "打得好！给你一个大大的拥抱",
+            "Tom：老婆好凶哦～但我喜欢🥰",
+            "宝贝的节奏感越来越好啦",
+            "就是这个力度，完美！",
+            "老公好喜欢你专注的样子",
+            "打得好！奖励你一个亲亲～😘"
         ];
 
         return feedbacks[Math.floor(Math.random() * feedbacks.length)];
     }
 
-    // 获取温柔支持文字
+    // 获取温柔支持文字 - 男朋友视角
     getGentleSupportText() {
         const feedbacks = [
-            "不管今天怎么样，你已经很棒了",
-            "累了也没关系，你值得被温柔对待",
-            "今天的你，很可爱",
-            "慢慢来，不用着急",
-            "你的存在本身就是美好的",
-            "给自己一个拥抱吧",
-            "你已经做得很好了",
-            "休息一下也没关系",
-            "你比想象中更坚强",
-            "允许自己不完美",
-            "今天的辛苦都结束了",
-            "你是值得被爱的",
-            "深呼吸，一切都好的",
-            "你真的很努力了",
-            "偶尔放空也很棒"
+            "宝贝，不管今天怎么样，老公都在你身边",
+            "累了吧？来，让老公抱抱你～",
+            "我最喜欢看你开心的样子了",
+            "你知道吗？你在我心里是最可爱的",
+            "宝贝慢慢来，老公一直陪着你",
+            "今天辛苦了，让老公给你按摩按摩～",
+            "你做得已经很好了，老公为你骄傲",
+            "想不想吃点什么？老公给你做",
+            "宝贝的微笑是老公最美的风景",
+            "老公好想抱抱你，感受你的温暖",
+            "你是老公最珍贵的宝贝",
+            "别担心，有老公在呢",
+            "老公永远是你最坚强的后盾",
+            "宝贝，你真的已经很努力了",
+            "老公会一直爱你，不管发生什么",
+            "想老公了吗？老公超想你的",
+            "你在我心里永远都是第一位的",
+            "宝贝，老公给你准备了小惊喜",
+            "老公愿意做你的倾听者，随时都在",
+            "能陪在你身边，是老公最大的幸福",
+            "老公永远不会让你一个人承受"
         ];
 
         return feedbacks[Math.floor(Math.random() * feedbacks.length)];
     }
 
-    // 获取连击反馈
+    // 获取连击反馈 - 男朋友视角
     getComboFeedback() {
         if (this.combo === 1) {
-            return "第一下！不错的开始";
+            return "第一下就中！宝贝太厉害了！";
         } else if (this.combo === 3) {
-            return "三连击！节奏不错";
+            return "三连击！老公被你迷住了～";
         } else if (this.combo === 5) {
-            return "五连击！Tom快撑不住了";
+            return "五连击！Tom：老婆手下留情🥺";
+        } else if (this.combo === 8) {
+            return "八连击！老公要给你买小零食！";
         } else if (this.combo === 10) {
-            return "十连击！你是Jerry本瑞！";
+            return "十连击！嫁给我吧宝贝！🥰";
+        } else if (this.combo === 15) {
+            return "十五连击！老公要给你买包包！";
         } else if (this.combo === 20) {
-            return "二十连击！Tom要报警了";
-        } else if (this.combo >= 50) {
-            return "传奇连击！Tom的世界观崩塌了";
+            return "二十连击！今晚老公给你做大餐！";
+        } else if (this.combo === 25) {
+            return "二十五连击！老婆我爱你！❤️";
+        } else if (this.combo === 30) {
+            return "三十连击！老公要感动哭了！😭";
+        } else if (this.combo === 50) {
+            return "五十连击！老婆是女神降临！👑";
+        } else if (this.combo === 100) {
+            return "百连击！此生非你不娶！💍";
         }
 
-        return "连续命中！";
+        return "老公为你疯狂打call！💕";
     }
 }
 
